@@ -231,7 +231,11 @@ def main(argv: list[str] | None = None) -> int:
         title = f"AI 日报 · {today.month}月{today.day}日"
         body = f"今日 {total_items} 条（国内 {cn_total} 条）"
         if headline:
-            body += f" · {truncate(headline.title_zh or headline.title, 28)}"
+            lead = headline.title_zh or headline.title
+            if any("\u4e00" <= ch <= "\u9fff" for ch in lead):
+                body += f" · {truncate(lead, 28)}"
+            else:
+                body += " · 点击查看今日 AI 日报"
         notify(title, body, url=site_url or None)
 
     log.info("done: %s", date_key)
