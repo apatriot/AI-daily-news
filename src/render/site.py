@@ -106,10 +106,11 @@ def render(
             html = detail_tpl.render(story=story, **ctx("../", page="story", story_id=story.id))
             (detail_dir / f"{story.id}.html").write_text(html, encoding="utf-8")
 
-    # archive
+    # archive (re-render with ../ so relative links resolve from /archive/)
     archive_dir = out_dir / "archive"
     archive_dir.mkdir(exist_ok=True)
-    (archive_dir / f"{date_key}.html").write_text(index_html, encoding="utf-8")
+    archive_html = env.get_template("index.html").render(**ctx("../"))
+    (archive_dir / f"{date_key}.html").write_text(archive_html, encoding="utf-8")
     dates = sorted((p.stem for p in archive_dir.glob("*.html") if p.stem != "index"), reverse=True)
     archive_tpl = env.get_template("archive.html")
     (archive_dir / "index.html").write_text(
