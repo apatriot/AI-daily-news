@@ -5,6 +5,8 @@ from datetime import datetime, timedelta, timezone
 
 from src.models import RawItem, Story
 from src.process.cluster import build_stories, classify
+from src.process.filter import is_ai_related, is_noise
+from src.process.region import detect_region
 from src.rank.profile import Profile
 from src.rank.select import select
 from src.util import canonical_url, story_id, strip_html
@@ -62,6 +64,50 @@ class ClusterTest(unittest.TestCase):
         self.assertEqual(story.subtopic, "open-model")
 
 
+class FilterTest(unittest.TestCase):
+    def test_event_signup_is_noise(self):
+        self.assertTrue(is_noise("创新大会嘉宾阵容更新", "", ["嘉宾阵容", "报名"]))
+
+    def test_real_news_is_not_noise(self):
+        self.assertFalse(is_noise("OpenAI 发布新模型", "性能提升 30%", ["报名", "嘉宾阵容"]))
+
+    def test_ai_keyword_match(self):
+        self.assertTrue(is_ai_related("大模型推理优化", "", ["大模型", "推理"]))
+        self.assertFalse(is_ai_related("新款手机发布", "价格 3999", ["大模型", "推理"]))
+
+
+class RegionTest(unittest.TestCase):
+    def test_cn_source_is_cn(self):
+        self.assertEqual(detect_region("Anything", "", "cn", []), "cn")
+
+    def test_cn_entity_in_english_text(self):
+        self.assertEqual(
+            detect_region("Alibaba launches new Qwen model", "", "global", ["阿里", "qwen"]),
+            "cn",
+        )
+
+    def test_chinese_text_is_cn(self):
+        self.assertEqual(
+            detect_region("字节跳动发布新模型", "这是一个测试", "global", ["字节"]),
+            "cn",
+        )
+
+    def test_cn_source_covering_foreign_company_is_global(self):
+        self.assertEqual(
+            detect_region(
+                "Anthropic 发布新模型", "Claude 能力提升", "cn",
+                ["字节", "阿里"], ["anthropic", "claude"],
+            ),
+            "global",
+        )
+
+    def test_global_story(self):
+        self.assertEqual(
+            detect_region("OpenAI ships a new model", "It is fast.", "global", ["阿里", "qwen"]),
+            "global",
+        )
+
+
 class SelectTest(unittest.TestCase):
     def setUp(self):
         self.profile = Profile(clusters={
@@ -79,6 +125,7 @@ class SelectTest(unittest.TestCase):
                 source_id=f"src{i % 6}", source_name=f"S{i % 6}",
                 category=cluster, published=self.now - timedelta(hours=i),
                 summary_raw="x" * 300, cluster=cluster,
+                region="cn" if i % 2 == 0 else "global",
             )
             s.scores["authority"] = 0.8
             s.summary_zh = "摘要" * 100
@@ -92,6 +139,20 @@ class SelectTest(unittest.TestCase):
         self.assertEqual(len(sections["explore"]), 1)
         self.assertEqual(len(sections["deep"]), 1)
         self.assertEqual(len(sections["briefs"]), 5)
+
+    def test_cn_ratio_at_least_half(self):
+        sections = select(self.stories, self.profile, self.now)
+        items = [s for group in sections.values() for s in group]
+        cn = sum(1 for s in items if s.region == "cn")
+        self.assertGreaterEqual(cn * 2, len(items))
+
+    def test_cn_ratio_with_scarce_cn_pool(self):
+        for index, story in enumerate(self.stories):
+            story.region = "cn" if index < 3 else "global"
+        sections = select(self.stories, self.profile, self.now)
+        items = [s for group in sections.values() for s in group]
+        cn = sum(1 for s in items if s.region == "cn")
+        self.assertGreaterEqual(cn * 2, len(items))
 
     def test_no_duplicate_story_across_sections(self):
         sections = select(self.stories, self.profile, self.now)

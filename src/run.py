@@ -15,11 +15,14 @@ import yaml
 from .ingest.rss import fetch_source
 from .models import RawItem
 from .process.cluster import build_stories, classify
+from .process.enrich import enrich
+from .process.filter import is_ai_related, is_noise
+from .process.region import apply_region
 from .publish.bark import notify
 from .rank.profile import Profile
 from .rank.select import select
 from .render.site import render
-from .util import now_utc
+from .util import now_utc, truncate
 from .write.llm import LLM
 from .write.summarize import summarize
 
@@ -122,12 +125,28 @@ def main(argv: list[str] | None = None) -> int:
     sources_cfg = load_yaml(CONFIG_DIR / "sources.yaml")
     sources = sources_cfg.get("sources") or []
     rules = sources_cfg.get("keyword_rules") or {}
+    ai_keywords = [str(k).lower() for k in (sources_cfg.get("ai_keywords") or [])]
+    ai_strong = [str(k).lower() for k in (sources_cfg.get("ai_strong_keywords") or [])]
+    noise_patterns = [str(k) for k in (sources_cfg.get("noise_patterns") or [])]
+    cn_entities = [str(k) for k in (sources_cfg.get("cn_entities") or [])]
+    foreign_entities = [str(k) for k in (sources_cfg.get("foreign_entities") or [])]
+    source_by_id = {s["id"]: s for s in sources}
+
+    def keep_item(item: RawItem) -> bool:
+        if is_noise(item.title, item.summary_raw, noise_patterns):
+            return False
+        source = source_by_id.get(item.source_id, {})
+        if not source.get("ai_only"):
+            return True
+        return is_ai_related(item.title, item.summary_raw, ai_keywords)
 
     profile_path = Path(os.getenv("PROFILE_PATH") or CONFIG_DIR / "profile.default.yaml")
     profile = Profile.load(profile_path)
 
     now = now_utc()
     items = filter_window(collect(sources, args.limit), now, days=7)
+    items = [item for item in items if keep_item(item)]
+    log.info("content filter -> %d items", len(items))
     if not items:
         log.error("no items collected — aborting without touching the site")
         return 2
@@ -135,9 +154,11 @@ def main(argv: list[str] | None = None) -> int:
     stories = build_stories(items)
     for story in stories:
         classify(story, rules)
-        story.scores["authority"] = next(
-            (s.get("weight", 0.5) for s in sources if s["id"] == story.source_id), 0.5
-        )
+        source = source_by_id.get(story.source_id, {})
+        apply_region(story, source.get("region", "global"), cn_entities, foreign_entities)
+        story.scores["authority"] = source.get("weight", 0.5)
+        text = f"{story.title} {story.summary_raw}".lower()
+        story.scores["quality_penalty"] = 1.0 if any(k in text for k in ai_strong) else 0.7
 
     seen = load_seen()
     stories = drop_seen(stories, seen)
@@ -149,15 +170,31 @@ def main(argv: list[str] | None = None) -> int:
     if args.offline:
         llm.api_key = ""
     log.info("LLM enabled=%s model=%s", llm.enabled, llm.model)
-    summarize(stories, llm)
 
     sections = select(stories, profile, now)
+
+    # Only the stories that made the cut get enriched and rewritten.
+    selected: list = []
+    seen_ids: set[str] = set()
+    for items in sections.values():
+        for story in items:
+            if story.id not in seen_ids:
+                seen_ids.add(story.id)
+                selected.append(story)
+    enrich(selected)
+    summarize(selected, llm)
+
+    total_cards = sum(len(v) for k, v in sections.items() if k != "briefs")
+    total_items = sum(len(v) for v in sections.values())
+    cn_total = sum(1 for items in sections.values() for story in items if story.region == "cn")
 
     feedback_url = os.getenv("FEEDBACK_POST_URL", "")
     site_url = os.getenv("SITE_URL", "")
     stats = {
         "raw": len(items),
         "stories": len(stories),
+        "cn": cn_total,
+        "total": sum(len(v) for v in sections.values()),
         "model": llm.model if llm.enabled else "offline",
     }
     render(
@@ -190,11 +227,12 @@ def main(argv: list[str] | None = None) -> int:
     save_seen(seen)
 
     if os.getenv("BARK_KEY"):
-        notify(
-            "AI 日报",
-            f"{date_key} 已更新 · {sum(len(v) for k, v in sections.items() if k != 'briefs')} 条",
-            url=site_url or None,
-        )
+        headline = (sections.get("headline") or [None])[0]
+        title = f"AI 日报 · {today.month}月{today.day}日"
+        body = f"今日 {total_items} 条（国内 {cn_total} 条）"
+        if headline:
+            body += f" · {truncate(headline.title_zh or headline.title, 28)}"
+        notify(title, body, url=site_url or None)
 
     log.info("done: %s", date_key)
     return 0

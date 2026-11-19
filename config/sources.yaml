@@ -1,13 +1,16 @@
 # 信源配置
-# weight: 0-1，影响 importance 分；category 用于聚类兜底
-# lang: zh / en，用于决定是否需要翻译式改写
+# region: cn = 中国境内内容，global = 海外
+# ai_only: true 表示通用科技源，只保留命中 AI 关键词的条目
 sources:
+  # ---------- 海外 ----------
   - id: openai
     name: OpenAI
     url: https://openai.com/news/rss.xml
     weight: 0.95
     category: frontier
     lang: en
+    region: global
+    ai_only: false
 
   - id: techcrunch-ai
     name: TechCrunch AI
@@ -15,6 +18,8 @@ sources:
     weight: 0.8
     category: industry
     lang: en
+    region: global
+    ai_only: false
 
   - id: theverge-ai
     name: The Verge AI
@@ -22,6 +27,17 @@ sources:
     weight: 0.75
     category: industry
     lang: en
+    region: global
+    ai_only: false
+
+  - id: venturebeat-ai
+    name: VentureBeat AI
+    url: https://venturebeat.com/category/ai/feed/
+    weight: 0.7
+    category: industry
+    lang: en
+    region: global
+    ai_only: false
 
   - id: huggingface
     name: Hugging Face
@@ -29,6 +45,8 @@ sources:
     weight: 0.7
     category: oss
     lang: en
+    region: global
+    ai_only: false
 
   - id: simonw
     name: Simon Willison
@@ -36,33 +54,286 @@ sources:
     weight: 0.7
     category: product
     lang: en
+    region: global
+    ai_only: true
 
-  - id: jiqizhixin
-    name: 机器之心
-    url: https://www.jiqizhixin.com/rss
-    weight: 0.75
+  # ---------- 国内 ----------
+  - id: qbitai
+    name: 量子位
+    url: https://www.qbitai.com/feed
+    weight: 0.8
+    category: frontier
+    lang: zh
+    region: cn
+    ai_only: false
+
+  - id: infoq-cn
+    name: InfoQ 中文
+    url: https://www.infoq.cn/feed
+    weight: 0.7
+    category: oss
+    lang: zh
+    region: cn
+    ai_only: true
+
+  - id: leiphone
+    name: 雷锋网
+    url: https://www.leiphone.com/feed
+    weight: 0.7
     category: industry
     lang: zh
+    region: cn
+    ai_only: true
+
+  - id: tmtpost
+    name: 钛媒体
+    url: https://www.tmtpost.com/feed
+    weight: 0.65
+    category: industry
+    lang: zh
+    region: cn
+    ai_only: true
+
+  - id: geekpark
+    name: 极客公园
+    url: https://www.geekpark.net/rss
+    weight: 0.7
+    category: product
+    lang: zh
+    region: cn
+    ai_only: true
+
+  - id: ifanr
+    name: 爱范儿
+    url: https://www.ifanr.com/feed
+    weight: 0.6
+    category: product
+    lang: zh
+    region: cn
+    ai_only: true
+
+# 通用科技源只保留命中这些词的条目
+ai_keywords:
+  - ai
+  - 人工智能
+  - 大模型
+  - 模型
+  - 智能体
+  - agent
+  - gpt
+  - llm
+  - 机器学习
+  - 深度学习
+  - 生成式
+  - 多模态
+  - 算力
+  - 推理
+  - 训练
+  - 机器人
+  - 具身
+  - 数字人
+  - 文生图
+  - 文生视频
+
+# 强 AI 关键词：命中才认为这条是真的 AI 新闻，否则降权
+ai_strong_keywords:
+  - 人工智能
+  - 大模型
+  - 大语言模型
+  - 生成式
+  - 多模态
+  - llm
+  - gpt
+  - agent
+  - 智能体
+  - 算力
+  - 推理
+  - 训练
+  - 机器学习
+  - 深度学习
+  - 机器人
+  - 具身
+  - 文生图
+  - 文生视频
+  - 模型
+
+# 判定为推广 / 活动 / 招聘，直接丢弃
+noise_patterns:
+  - 报名
+  - 嘉宾阵容
+  - 议程
+  - 直播预约
+  - 限时
+  - 优惠
+  - 抽奖
+  - 招聘
+  - 训练营
+  - 大会报名
+  - 小编探班
+  - 技术前线
+  - 免费领取
+  - 扫码
+  - 添加小助手
+  - 课程推荐
+  - webinar
+  - register now
+  - sign up
+  - join us
+  - meetup
+  - sponsored
+
+# 判定「中国境内」的实体与关键词（命中任一即视为国内内容）
+cn_entities:
+  - 中国
+  - 国内
+  - 国产
+  - 北京
+  - 上海
+  - 深圳
+  - 杭州
+  - 广州
+  - 成都
+  - 武汉
+  - 南京
+  - 苏州
+  - 阿里
+  - 阿里巴巴
+  - 腾讯
+  - 字节
+  - 抖音
+  - 百度
+  - 华为
+  - 小米
+  - 京东
+  - 美团
+  - 滴滴
+  - 拼多多
+  - 月之暗面
+  - moonshot
+  - kimi
+  - 智谱
+  - zhipu
+  - glm
+  - 深度求索
+  - deepseek
+  - minimax
+  - 商汤
+  - sensetime
+  - 科大讯飞
+  - iflytek
+  - 寒武纪
+  - cambricon
+  - 壁仞
+  - 摩尔线程
+  - 沐曦
+  - 天数智芯
+  - 通义
+  - qwen
+  - 文心
+  - ernie
+  - 混元
+  - hunyuan
+  - 豆包
+  - doubao
+  - 元宝
+  - 智元
+  - 宇树
+  - unitree
+  - 大疆
+  - dji
+  - 智源
+  - baai
+  - 上海人工智能实验室
+  - 书生
+  - internlm
+  - 阶跃星辰
+  - stepfun
+  - 零一万物
+  - 百川
+  - baichuan
+  - 面壁
+  - minicpm
+  - 无问芯穹
+  - 硅基流动
+  - siliconflow
+  - 燧原
+  - 工信部
+  - 网信办
+  - 国务院
+  - 信通院
+  - 发改委
+  - 科技部
+  - 科创板
+  - 港股
+  - 人民币
+
+# 判定为「海外」的实体（用于区分「中国媒体报道海外公司」）
+foreign_entities:
+  - openai
+  - anthropic
+  - google
+  - deepmind
+  - meta
+  - microsoft
+  - nvidia
+  - apple
+  - amazon
+  - aws
+  - tesla
+  - xai
+  - mistral
+  - cohere
+  - perplexity
+  - hugging face
+  - stability ai
+  - midjourney
+  - openrouter
+  - groq
+  - databricks
+  - snowflake
+  - salesforce
+  - ibm
+  - oracle
+  - samsung
+  - intel
+  - amd
+  - qualcomm
+  - softbank
+  - sumitomo
+  - red hat
+  - 红帽
+  - 谷歌
+  - 微软
+  - 英伟达
+  - 苹果
+  - 亚马逊
+  - 特斯拉
+  - 甲骨文
+  - 英特尔
+  - 高通
+  - 三星
+  - 软银
+  - 脸书
 
 # 关键词 → 簇 / 子话题，用于没有 LLM 时的兜底分类
 keyword_rules:
   frontier:
-    keywords: [model, benchmark, pretrain, training, inference, scaling, gpt, claude, gemini, llama, qwen, deepseek, 模型, 训练, 推理, 基准]
+    keywords: [model, benchmark, pretrain, training, inference, scaling, gpt, claude, gemini, llama, qwen, deepseek, 模型, 训练, 推理, 基准, 大模型]
     subtopics:
-      new-model: [release, 发布, gpt, claude, gemini, llama, qwen, deepseek]
-      research: [paper, research, 论文, 研究, benchmark]
+      new-model: [release, 发布, gpt, claude, gemini, llama, qwen, deepseek, 模型]
+      research: [paper, research, 论文, 研究, benchmark, 基准]
   product:
-    keywords: [agent, copilot, app, product, feature, coding, assistant, 产品, 助手, 编程]
+    keywords: [agent, copilot, app, product, feature, coding, assistant, 产品, 助手, 编程, 智能体]
     subtopics:
       agents: [agent, 智能体, workflow]
-      coding: [coding, code, 编程, developer]
+      coding: [coding, code, 编程, developer, 开发者]
   industry:
     keywords: [funding, raise, acquisition, policy, regulation, lawsuit, 融资, 收购, 监管, 政策]
     subtopics:
-      funding: [funding, raise, 融资, 估值]
-      policy: [policy, regulation, 监管, 政策, 法案]
+      funding: [funding, raise, 融资, 估值, 上市]
+      policy: [policy, regulation, 监管, 政策, 法案, 网信办, 工信部]
   oss:
-    keywords: [open source, github, release, weights, 开源, 权重, 部署, quantization]
+    keywords: [open source, github, release, weights, 开源, 权重, 部署, quantization, 推理优化]
     subtopics:
       open-model: [open source, weights, 开源, 权重]
-      tooling: [github, tool, 部署, quantization, 推理优化]
+      tooling: [github, tool, 部署, quantization, 推理优化, 工具]

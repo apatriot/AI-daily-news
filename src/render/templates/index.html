@@ -64,6 +64,7 @@
       <li data-story-id="{{ story.id }}" data-section="briefs"
           data-cluster="{{ story.cluster }}" data-source="{{ story.source_id }}">
         <a href="{{ root }}s/{{ story.id }}.html">{{ story.title_zh or story.title }}</a>
+        {% if story.region == "cn" %}<span class="region">国内</span>{% endif %}
         <span class="brief-source">{{ story.source_name }}</span>
       </li>
       {% endfor %}

@@ -12,6 +12,7 @@
       data-cluster="{{ story.cluster }}" data-source="{{ story.source_id }}">
   <div class="meta">
     <span class="source">{{ story.source_name }}</span>
+    {% if story.region == "cn" %}<span class="region">国内</span>{% endif %}
     <span class="sep">·</span><span>{{ human_time(story.published) }}</span>
     <span class="sep">·</span><span>{{ story.read_min }} 分钟</span>
   </div>

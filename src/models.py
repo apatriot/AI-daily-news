@@ -29,6 +29,7 @@ class Story:
     summary_raw: str
     cluster: str = "industry"
     subtopic: str = ""
+    region: str = "global"
     tags: list[str] = field(default_factory=list)
     related: list[dict] = field(default_factory=list)
 
@@ -61,6 +62,7 @@ class Story:
             "tags": self.tags,
             "cluster": self.cluster,
             "subtopic": self.subtopic,
+            "region": self.region,
             "related": self.related,
             "read_min": self.read_min,
             "scores": self.scores,
