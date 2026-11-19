@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ story.title_zh or story.title }} · AI 日报{% endblock %}
+{% block content %}
+<header class="top">
+  <div class="top-inner detail-top">
+    <a class="back" href="{{ root }}index.html">← 返回</a>
+    <div class="top-meta">{{ date_label }}</div>
+  </div>
+</header>
+
+<main class="wrap detail" data-story-id="{{ story.id }}" data-section="{{ story.section }}"
+      data-cluster="{{ story.cluster }}" data-source="{{ story.source_id }}">
+  <div class="meta">
+    <span class="source">{{ story.source_name }}</span>
+    <span class="sep">·</span><span>{{ human_time(story.published) }}</span>
+    <span class="sep">·</span><span>{{ story.read_min }} 分钟</span>
+  </div>
+
+  <h1 class="detail-title">{{ story.title_zh or story.title }}</h1>
+  {% if story.title_original and story.title_zh and story.title_original != story.title_zh %}
+  <p class="original-title">{{ story.title_original }}</p>
+  {% endif %}
+
+  <p class="detail-summary">{{ story.summary_zh }}</p>
+
+  {% if story.key_points %}
+  <ul class="points">
+    {% for point in story.key_points %}<li>{{ point }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if story.why_matters %}
+  <div class="why-block">
+    <span class="why-label">为什么重要</span>
+    <p>{{ story.why_matters }}</p>
+  </div>
+  {% endif %}
+
+  {% if story.related %}
+  <div class="related">
+    <span class="why-label">其他来源</span>
+    <ul>
+      {% for item in story.related %}
+      <li><a href="{{ item.url }}" target="_blank" rel="noopener" data-outbound>{{ item.source }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <a class="cta" href="{{ story.url }}" target="_blank" rel="noopener" data-outbound>阅读原文 ↗</a>
+
+  <div class="detail-actions">
+    <button class="act act-up" data-action="up" type="button">👍 有用</button>
+    <button class="act act-more" data-action="more" type="button">···</button>
+  </div>
+
+  {% if story.why_for_you %}<p class="why-for-you">{{ story.why_for_you }}</p>{% endif %}
+</main>
+{% endblock %}

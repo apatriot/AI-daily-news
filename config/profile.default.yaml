@@ -1,0 +1,38 @@
+# 兴趣画像默认值（冷启动）
+# 线上运行时画像存在 Google Sheet，这里是兜底 / 首次运行使用
+version: 1
+updated: null
+clusters:
+  frontier:
+    weight: 0.28
+    subtopics:
+      new-model: 0.28
+      research: 0.28
+  product:
+    weight: 0.26
+    subtopics:
+      agents: 0.26
+      coding: 0.26
+  industry:
+    weight: 0.22
+    subtopics:
+      funding: 0.22
+      policy: 0.22
+  oss:
+    weight: 0.24
+    subtopics:
+      open-model: 0.24
+      tooling: 0.24
+sources:
+  boost: [openai, simonw, huggingface]
+  mute: []
+source_quality: {}
+exclusions: []
+style:
+  depth: technical
+  length: medium
+  language: zh
+exploration:
+  epsilon: 0.2
+  cooldown_days: 30
+  cold_clusters: []

@@ -1,0 +1,11 @@
+# generated / runtime data
+data/*
+!data/seen.json
+!data/.gitkeep
+*.pyc
+__pycache__/
+.venv/
+venv/
+.env
+.DS_Store
+.pytest_cache/

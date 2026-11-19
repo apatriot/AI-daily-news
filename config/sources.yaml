@@ -1,0 +1,68 @@
+# 信源配置
+# weight: 0-1，影响 importance 分；category 用于聚类兜底
+# lang: zh / en，用于决定是否需要翻译式改写
+sources:
+  - id: openai
+    name: OpenAI
+    url: https://openai.com/news/rss.xml
+    weight: 0.95
+    category: frontier
+    lang: en
+
+  - id: techcrunch-ai
+    name: TechCrunch AI
+    url: https://techcrunch.com/category/artificial-intelligence/feed/
+    weight: 0.8
+    category: industry
+    lang: en
+
+  - id: theverge-ai
+    name: The Verge AI
+    url: https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
+    weight: 0.75
+    category: industry
+    lang: en
+
+  - id: huggingface
+    name: Hugging Face
+    url: https://huggingface.co/blog/feed.xml
+    weight: 0.7
+    category: oss
+    lang: en
+
+  - id: simonw
+    name: Simon Willison
+    url: https://simonwillison.net/atom/everything/
+    weight: 0.7
+    category: product
+    lang: en
+
+  - id: jiqizhixin
+    name: 机器之心
+    url: https://www.jiqizhixin.com/rss
+    weight: 0.75
+    category: industry
+    lang: zh
+
+# 关键词 → 簇 / 子话题，用于没有 LLM 时的兜底分类
+keyword_rules:
+  frontier:
+    keywords: [model, benchmark, pretrain, training, inference, scaling, gpt, claude, gemini, llama, qwen, deepseek, 模型, 训练, 推理, 基准]
+    subtopics:
+      new-model: [release, 发布, gpt, claude, gemini, llama, qwen, deepseek]
+      research: [paper, research, 论文, 研究, benchmark]
+  product:
+    keywords: [agent, copilot, app, product, feature, coding, assistant, 产品, 助手, 编程]
+    subtopics:
+      agents: [agent, 智能体, workflow]
+      coding: [coding, code, 编程, developer]
+  industry:
+    keywords: [funding, raise, acquisition, policy, regulation, lawsuit, 融资, 收购, 监管, 政策]
+    subtopics:
+      funding: [funding, raise, 融资, 估值]
+      policy: [policy, regulation, 监管, 政策, 法案]
+  oss:
+    keywords: [open source, github, release, weights, 开源, 权重, 部署, quantization]
+    subtopics:
+      open-model: [open source, weights, 开源, 权重]
+      tooling: [github, tool, 部署, quantization, 推理优化]

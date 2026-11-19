@@ -1,0 +1,26 @@
+{% macro card(story, section) %}
+<article class="card" data-story-id="{{ story.id }}" data-section="{{ section }}"
+         data-cluster="{{ story.cluster }}" data-source="{{ story.source_id }}">
+  <a class="card-main" href="{{ root }}s/{{ story.id }}.html">
+    <div class="meta">
+      <span class="source">{{ story.source_name }}</span>
+      <span class="sep">·</span><span>{{ human_time(story.published) }}</span>
+      <span class="sep">·</span><span>{{ story.read_min }} 分钟</span>
+    </div>
+    <h3 class="card-title">{{ story.title_zh or story.title }}</h3>
+    <p class="card-summary">{{ story.summary_zh }}</p>
+    {% if story.why_for_you %}
+    <div class="why"><span>{{ story.why_for_you }}</span></div>
+    {% endif %}
+    {% if story.tags %}
+    <div class="tags">
+      {% for tag in story.tags %}<span>#{{ tag }}</span>{% endfor %}
+    </div>
+    {% endif %}
+  </a>
+  <div class="actions">
+    <button class="act act-up" data-action="up" type="button" aria-label="有用">👍 有用</button>
+    <button class="act act-more" data-action="more" type="button" aria-label="更多">···</button>
+  </div>
+</article>
+{% endmacro %}

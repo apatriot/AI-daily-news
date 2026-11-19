@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}往期存档 · AI 日报{% endblock %}
+{% block content %}
+<header class="top">
+  <div class="top-inner detail-top">
+    <a class="back" href="{{ root }}index.html">← 返回</a>
+    <div class="top-meta">往期存档</div>
+  </div>
+</header>
+<main class="wrap">
+  <ul class="archive-list">
+    {% for day in dates %}
+    <li><a href="{{ day }}.html">{{ day }}</a></li>
+    {% endfor %}
+  </ul>
+</main>
+{% endblock %}

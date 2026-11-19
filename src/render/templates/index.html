@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card with context %}
+{% block title %}AI 日报 · {{ date_label }}{% endblock %}
+{% block content %}
+<header class="top">
+  <div class="top-inner">
+    <div class="top-date">{{ date_label }}</div>
+    <div class="top-meta">{{ total_cards }} 条 · 约 {{ reading_min }} 分钟</div>
+  </div>
+</header>
+
+<main class="wrap">
+  {% if tldr %}
+  <section class="tldr">
+    <h2 class="kicker">今日速览</h2>
+    <ul>
+      {% for line in tldr %}<li>{{ line }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if sections.headline %}
+  <section class="section">
+    <h2 class="kicker">头条</h2>
+    {% for story in sections.headline %}{{ card(story, "headline") }}{% endfor %}
+  </section>
+  {% endif %}
+
+  {% if sections.personal %}
+  <section class="section">
+    <h2 class="kicker">与你相关</h2>
+    {% for story in sections.personal %}{{ card(story, "personal") }}{% endfor %}
+  </section>
+  {% endif %}
+
+  {% if sections.global %}
+  <section class="section">
+    <h2 class="kicker">行业全局</h2>
+    {% for story in sections.global %}{{ card(story, "global") }}{% endfor %}
+  </section>
+  {% endif %}
+
+  {% if sections.explore %}
+  <section class="section">
+    <h2 class="kicker">探索发现</h2>
+    {% for story in sections.explore %}{{ card(story, "explore") }}{% endfor %}
+  </section>
+  {% endif %}
+
+  {% if sections.deep %}
+  <section class="section">
+    <details class="deep">
+      <summary class="kicker">深度 · 论文 <span class="fold">展开</span></summary>
+      {% for story in sections.deep %}{{ card(story, "deep") }}{% endfor %}
+    </details>
+  </section>
+  {% endif %}
+
+  {% if sections.briefs %}
+  <section class="section">
+    <h2 class="kicker">快讯</h2>
+    <ul class="briefs">
+      {% for story in sections.briefs %}
+      <li data-story-id="{{ story.id }}" data-section="briefs"
+          data-cluster="{{ story.cluster }}" data-source="{{ story.source_id }}">
+        <a href="{{ root }}s/{{ story.id }}.html">{{ story.title_zh or story.title }}</a>
+        <span class="brief-source">{{ story.source_name }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <footer class="foot">
+    <a href="{{ root }}archive/index.html">往期存档</a>
+    <span>·</span>
+    <span>每天 09:00 更新</span>
+  </footer>
+</main>
+{% endblock %}
