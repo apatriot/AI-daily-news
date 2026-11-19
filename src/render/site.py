@@ -53,6 +53,8 @@ def render(
     stats: dict | None = None,
 ) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
+    # Serve the files exactly as generated (no Jekyll processing).
+    (out_dir / ".nojekyll").write_text("", encoding="utf-8")
     assets_out = out_dir / "assets"
     if assets_out.exists():
         shutil.rmtree(assets_out)
